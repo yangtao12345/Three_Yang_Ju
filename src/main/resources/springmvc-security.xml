@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+	xmlns:security="http://www.springframework.org/schema/security"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	classpath:org/springframework/beans/factory/xml/spring-beans-4.3.xsd
+	http://www.springframework.org/schema/context 
+	classpath:org/springframework/context/config/spring-context-4.3.xsd 
+	http://www.springframework.org/schema/mvc 
+	classpath:org/springframework/web/servlet/config/spring-mvc-4.3.xsd 
+	http://www.springframework.org/schema/jdbc 
+	classpath:org/springframework/jdbc/config/spring-jdbc-4.3.xsd 
+	http://www.springframework.org/schema/security 
+  	http://www.springframework.org/schema/security/spring-security.xsd">
+
+	<mvc:annotation-driven />
+	<context:component-scan base-package="online.shixun.controller">
+	</context:component-scan>
+	<!-- 定义静态资源(例如html,css等)访问目录 -->
+	<mvc:resources location="/images" mapping="/**" />
+	<mvc:resources location="/plugins" mapping="/**" />
+	<mvc:resources location="/css" mapping="/**" />
+	<mvc:resources location="/js" mapping="/**" />
+	<mvc:resources location="/assets" mapping="/**" />
+	<mvc:resources location="/fonts" mapping="/**" />
+	<mvc:resources location="/font-awesome" mapping="/**" />
+	<bean id="multipartResolver"
+		class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<property name="maxUploadSize" value="10240000000" />
+		<property name="defaultEncoding" value="utf-8" />
+	</bean>
+	<bean id="viewResolver"
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="viewClass"
+			value="org.springframework.web.servlet.view.JstlView" />
+		<property name="prefix" value="/WEB-INF/view/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+
+	<!-- <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource"> 
+		<property name="driverClassName" value="com.mysql.jdbc.Driver" /> <property 
+		name="url" value="jdbc:mysql://localhost:3306/taoge?characterEncoding=UTF-8" 
+		/> <property name="username" value="root" /> <property name="password" value="1234" 
+		/> </bean> -->
+
+	<!-- <security:http> <security:intercept-url pattern="/**" access="hasRole('USER')" 
+		/> <security:form-login /> <security:logout /> </security:http> -->
+
+	<security:http use-expressions="true">
+		<security:intercept-url pattern="/handing_*"
+			access="hasRole('EMPLOYEE1')" />
+
+		<security:intercept-url pattern="*.js" access="ANONYMOUS" />
+		<security:intercept-url pattern="*.css" access="ANONYMOUS" />
+		<security:intercept-url pattern="/**" access="permitAll" />
+		<security:access-denied-handler ref="myAccessDeniedHandler" />
+		<security:headers>
+			<security:frame-options policy="SAMEORIGIN" />
+			<security:cache-control disabled="true" />
+			<security:content-type-options
+				disabled="true" />
+		</security:headers>
+		<security:form-login login-page="/to_login"
+			password-parameter="password" username-parameter="username"
+			login-processing-url="/do_login" authentication-success-forward-url="/WEB-INF/view/main.jsp"
+			authentication-failure-forward-url="/WEB-INF/view/login.jsp" />
+		<!-- <security:logout logout-url="/logout" logout-success-url="/WEB-INF/view/login.jsp" 
+			invalidate-session="true" /> -->
+	</security:http>
+	<bean id="myService" class="online.shixun.service.impl.CustomUserDetailsServiceImpl" />
+
+	<bean id="myAccessDeniedHandler" class="online.shixun.handle.MyAccessDeniedHandler">
+		<property name="accessDeniedHandlerUrl" value="/Three_Yang_Ju/to_403"></property>
+	</bean>
+	<bean id="encoder"
+		class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder"></bean>
+	<security:authentication-manager>
+		<security:authentication-provider
+			user-service-ref="myService">
+			<security:password-encoder ref="encoder"></security:password-encoder>
+			<!-- <security:user-service> <security:user name="jimi" password="jimispassword" 
+				authorities="ROLE_USER, ROLE_ADMIN" /> <security:user name="bob" password="bobspassword" 
+				authorities="ROLE_USER" /> </security:user-service> -->
+		</security:authentication-provider>
+	</security:authentication-manager>
+</beans>
